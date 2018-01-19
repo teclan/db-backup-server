@@ -63,7 +63,7 @@ public class ESService {
 					}
 
 					public void afterBulk(long executionId, BulkRequest request, BulkResponse response) {
-						LOGGER.info("提交至目标ES成功");
+						// LOGGER.info("提交至目标ES成功");
 					}
 
 					public void afterBulk(long executionId, BulkRequest request, Throwable failure) {
@@ -119,6 +119,8 @@ public class ESService {
 			// FieldSortBuilder("eventTime").order(SortOrder.valueOf("DESC"));
 			// boolQuery.must(QueryBuilders.termQuery("devId", devId));
 
+			LOGGER.info("开始同步索引：{}", index);
+
 			long total = countIndex(index);
 
 			int pages = (int) Math.ceil(total * 1.0 / LIMIT);
@@ -139,8 +141,12 @@ public class ESService {
 
 					handler.handle(index, type, id, document);
 				}
-			}
 
+				if (i % 10 == 0) {
+					LOGGER.info("索引:{},共有记录:{},已完成：{}", index, total, i * LIMIT);
+				}
+			}
+			LOGGER.info("索引:{},共有记录:{},同步完成...", index, total);
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 		}

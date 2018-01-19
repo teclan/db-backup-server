@@ -43,6 +43,7 @@ public class MysqlDatabase {
 		return allTables;
 	}
 
+	@Override
 	public String toString() {
 		return String.format("driver:%s\nurl:%s\nuser:%s\npassword:%s\n", driver, url, user, password);
 	}
@@ -116,8 +117,12 @@ public class MysqlDatabase {
 				for (Map map : list) {
 					handler.handler(table, map);
 				}
-				LOGGER.info("同步表 `{}`，完成`{}`，剩余`{}`...", table, i * LIMIT > total ? total : i * LIMIT,
-						i * LIMIT > total ? 0 : total - i * LIMIT);
+
+				if (i % 10 == 0) {
+					LOGGER.info("同步表 `{}`，完成`{}`，剩余`{}`...", table, i * LIMIT > total ? total : i * LIMIT,
+							i * LIMIT > total ? 0 : total - i * LIMIT);
+
+				}
 			}
 			LOGGER.info("表 `{}`，同步完成...", table);
 		} catch (Exception e) {
