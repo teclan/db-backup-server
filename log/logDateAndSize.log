@@ -1,0 +1,5 @@
+2018 -01-08 10:07 :58 [ INFO] - org.elasticsearch.plugins -PluginsService.java(180) -[Cessily Kincaid] modules [], plugins [], sites []
+ 2018 -01-08 10:08 :01 [ INFO] - db.back.server.es.ESFactory -ESFactory.java(65) -源ES：
+host:192.168.3.134	port:9300 初始化完成...
+ 2018 -01-08 10:08 :01 [ INFO] - org.elasticsearch.plugins -PluginsService.java(180) -[Melody Guthrie] modules [], plugins [], sites []
+ 
