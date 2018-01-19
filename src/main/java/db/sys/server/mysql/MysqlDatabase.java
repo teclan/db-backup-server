@@ -1,6 +1,7 @@
-package db.back.server.mysql;
+package db.sys.server.mysql;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,7 +9,9 @@ import org.javalite.activejdbc.DB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import db.back.server.handle.Handler;
+import db.sys.server.handle.Handler;
+import db.sys.server.utils.Objects;
+import db.sys.server.utils.SqlGenerateUtils;
 
 public class MysqlDatabase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MysqlDatabase.class);
@@ -21,26 +24,69 @@ public class MysqlDatabase {
 	private String password;
 	private String connectionName;
 	private List<String> allTables;
-
 	private DB db;
+	private  Map<String,List<String>> pkInfo = new HashMap<String,List<String>>();
+	private List<String> unSysTables;
 
-	public MysqlDatabase(String driver, String url, String user, String password, String connectionName) {
+	public MysqlDatabase(String driver, String url, String user, String password, String connectionName,List<String> unSysTables) {
 		this.driver = driver;
 		this.url = url;
 		this.dbName = getDbName();
 		this.user = user;
 		this.password = password;
 		this.connectionName = connectionName;
+		this.unSysTables=unSysTables==null?new ArrayList<String>():unSysTables;
 	}
 
 	public void init() {
 		openDatabase();
-		allTables = analyzeAllTables();
+		analyzeAllTables();
+		analyzePkInfo();
 		closeDatabase();
 	}
 
 	public List<String> getAllTables() {
 		return allTables;
+	}
+	
+	
+	public void analyzePkInfo(){
+	    for(String table:allTables){
+	        
+	        if(unSysTables.contains(table)){
+	            LOGGER.info("表 {} 不需要同步 ... ",table);
+	            continue;
+	        }
+	        pkInfo.put(table, getPksByTable(table));
+	    }
+	}
+	
+	public Map<String,List<String>> getPkInfo(){
+	    return pkInfo;
+	}
+	
+	
+	
+	@SuppressWarnings("rawtypes")
+    public List<String> getPksByTable(String table){
+	    
+	    if(pkInfo.containsKey(table)){
+	        return pkInfo.get(table);
+	    }
+	    
+	    String sql = "select concat(c.column_name) as 'column_name' from information_schema.table_constraints as t,information_schema.key_column_usage as c where t.table_name=c.table_name and t.table_name='%s' and t.table_schema='%s' and c.table_schema=t.table_schema";
+	
+	    List<Map> result = getDb().findAll(String.format(sql, table,dbName));
+	    
+	    List<String> pks = new ArrayList<String>();
+	    
+	    if(Objects.isNotNull(result)){
+	        for(Map map:result){
+	            pks.add(map.get("column_name").toString());
+	        }
+	    }
+	   
+	    return pks;
 	}
 
 	@Override
@@ -79,12 +125,27 @@ public class MysqlDatabase {
 		for (Map map : list) {
 			tables.add(map.get("table_name").toString());
 		}
+		
+	    tables.removeAll(unSysTables);
+		allTables= tables;
 		return tables;
 	}
 
 	public long count(String table) {
 		return getDb().count(table);
 	}
+	
+	@SuppressWarnings("rawtypes")
+    public long count(String table,Map map) {
+	    
+	    List<String> pks = getPksByTable(table);
+	    
+	    String query = SqlGenerateUtils.getExactQuerySql(pks );
+	    Object[] values =SqlGenerateUtils.getValues(map, pks );
+	    
+        return getDb().count(table, query, values);
+    }
+
 
 	public DB getDb() {
 		if (db == null) {
@@ -130,71 +191,6 @@ public class MysqlDatabase {
 		}
 	}
 
-	/**
-	 * 创建表 `table` 的备份
-	 * 
-	 * @param table
-	 */
-	public void backTable(String table) {
-
-		String bakTabke = getBakTable(table);
-
-		// 如果存在与备份表同名的表，则删除
-		dropTableIfNeed(bakTabke);
-
-		try {
-			// 创建表 `table` 的备份表 `table`-bak
-			getDb().exec(String.format("CREATE TABLE %s LIKE %s", bakTabke, table));
-			// 复制表 `table` 的数据导 `table`-bak
-			getDb().exec(String.format("INSERT INTO %s SELECT * FROM %s", bakTabke, table));
-
-			LOGGER.info("目标数据库，备份表 `{}` 至表 `{}` 完成 ...", table, bakTabke);
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-		}
-	}
-
-	/**
-	 * 清空表 `table` 的数据
-	 * 
-	 * @param table
-	 */
-	public void cleanData(String table) {
-		try {
-			getDb().exec(String.format("delete FROM %s", table));
-			LOGGER.info("目标数据库，清理表 `{}` 数据完成...", table);
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-		}
-	}
-
-	/**
-	 * 删除备份表
-	 */
-	public void dropBakTable(String table) {
-		String bakTabke = getBakTable(table);
-		dropTableIfNeed(bakTabke);
-		LOGGER.info("目标数据库，删除表`{}`的备份表`{}`完成...", table, bakTabke);
-	}
-
-	private String getBakTable(String table) {
-		return table + "_bak";
-	}
-
-	/**
-	 * 如果表存在，则删除
-	 * 
-	 * @param table
-	 */
-	private void dropTableIfNeed(String table) {
-		try {
-			if (allTables.contains(table)) {
-				getDb().exec(String.format("drop table %s", table));
-			}
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-		}
-	}
 
 	private String getDbName() {
 		String[] splits = url.split("\\:");

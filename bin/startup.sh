@@ -1,4 +1,3 @@
-title db-back-server
 
 set MAIN_CLASS=db.sys.server.Main
 

@@ -12,17 +12,17 @@
 			<includes>
 				<include>*</include>
 			</includes>
-			<outputDirectory>/</outputDirectory>
+			<outputDirectory>./</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory>/</directory>
+			<directory>./</directory>
 			<includes>
 				<include>README.*</include>
 			</includes>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory>config</directory>
+			<directory>./config</directory>
 			<includes>
 				<include>*</include>
 			</includes>

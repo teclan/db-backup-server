@@ -1,4 +1,4 @@
-package db.back.server.mysql;
+package db.sys.server.mysql;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -94,11 +94,11 @@ public class MysqlFactory {
 		// 解析源 mysql 配置
 		MysqlDatabase resMysql = new MysqlDatabase(resMysqlCfg.getString("driver"), resMysqlCfg.getString("url"),
 				resMysqlCfg.getString("user"), resMysqlCfg.getString("password"),
-				resMysqlCfg.getString("connectionName"));
+				resMysqlCfg.getString("connectionName"),resMysqlCfg.getStringList("un-sys-tables"));
 		// 解析目标mysql 配置
 		MysqlDatabase desMysql = new MysqlDatabase(desMysqlCfg.getString("driver"), desMysqlCfg.getString("url"),
 				desMysqlCfg.getString("user"), desMysqlCfg.getString("password"),
-				desMysqlCfg.getString("connectionName"));
+				desMysqlCfg.getString("connectionName"),null);
 
 		// 初始化 mysql 配置
 		return MysqlFactory.init(resMysql, desMysql, mysqlThreadPoolSize, period, enable);

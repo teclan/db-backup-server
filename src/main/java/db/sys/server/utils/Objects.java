@@ -1,4 +1,4 @@
-package db.back.server.utils;
+package db.sys.server.utils;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -120,6 +120,26 @@ public class Objects {
 
 		return result.substring(0, result.length() - separator.length());
 	}
+	
+	public static String Joiner(String separator, String[] collection) {
+
+        if (collection==null|| collection.length == 0) {
+            return "";
+        }
+
+        StringBuffer sb = new StringBuffer();
+
+        if (collection.length == 1) {
+            return collection[0];
+        } else {
+            for(String v:collection){
+                sb.append(v).append(separator);
+            }
+        }
+        String result = sb.toString();
+
+        return result.substring(0, result.length() - separator.length());
+    }
 
 	public static String Joiner(String separator, Set<String> collection) {
 
@@ -235,5 +255,16 @@ public class Objects {
 
 		return namesAndValues;
 
+	}
+	
+	public static Object[] merge(Object[] value1,Object[] value2){
+	    
+	    Object[] result = new Object[value1.length+value2.length];
+	    
+	    System.arraycopy(value1, 0, result, 0, value1.length);
+	    System.arraycopy(value2, 0, result, value1.length, value2.length);
+	    
+	    return result;
+	    
 	}
 }
