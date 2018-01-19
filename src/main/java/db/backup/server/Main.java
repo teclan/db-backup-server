@@ -1,4 +1,4 @@
-package db.back.server;
+package db.backup.server;
 
 import java.io.File;
 import java.util.ArrayList;
