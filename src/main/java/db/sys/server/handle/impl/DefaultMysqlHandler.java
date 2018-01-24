@@ -24,7 +24,6 @@ public class DefaultMysqlHandler implements Handler {
     private static final Logger LOGGER     = LoggerFactory
             .getLogger(DefaultMysqlHandler.class);
 
-    private static String       DELETE_SQL = "delete from %s where %s";
 
     public void handle(String index, String type, String id,
             JSONObject document) {
@@ -34,8 +33,13 @@ public class DefaultMysqlHandler implements Handler {
     @SuppressWarnings("unchecked")
     public void handler(String table, Map map) {
 
+
         String sql = "insert into %s %s";
         try {
+
+			// TODO
+			// 没有主键的表需要特殊处理
+
 
             if (MysqlFactory.DES.count(table, map) > 0) {
 				// LOGGER.info("记录存在，需要更新....");

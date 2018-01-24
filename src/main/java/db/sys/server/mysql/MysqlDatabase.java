@@ -45,6 +45,7 @@ public class MysqlDatabase {
 		analyzePkInfo();
 		analyzerPlatformInfo();
 		closeDatabase();
+
 	}
 
 	public List<String> getAllTables() {
@@ -98,6 +99,7 @@ public class MysqlDatabase {
 	        return pkInfo.get(table);
 	    }
 	    
+
 	    String sql = "select concat(c.column_name) as 'column_name' from information_schema.table_constraints as t,information_schema.key_column_usage as c where t.table_name=c.table_name and t.table_name='%s' and t.table_schema='%s' and c.table_schema=t.table_schema";
 	
 	    List<Map> result = getDb().findAll(String.format(sql, table,dbName));
@@ -214,7 +216,7 @@ public class MysqlDatabase {
 						map.put("dataFrom", MysqlFactory.RES.platformId);
 				    }
 					if (map.containsKey("platformId")) {
-						map.put("platformId", MysqlFactory.DES.platformId);
+						map.put("platformId", MysqlFactory.RES.platformId);
 					}
 
 					if ("imm_rolearea".equalsIgnoreCase(table)) {
